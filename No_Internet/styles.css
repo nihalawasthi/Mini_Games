@@ -1,0 +1,45 @@
+body,
+html {
+  height: 100%;
+  margin: 0;
+  overflow: hidden; /* To prevent scrollbars */
+ /* Desert background color */
+}
+#game-container{
+  display: block;
+  background-color: #f7f7f7;
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+}
+
+canvas {
+  display: block;
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+}
+
+#player {
+  width: 70px;
+  height: 100px;
+  background-image: url('player.png'); /* Update the path to your Dino image */
+  background-size: cover;
+  position: absolute;
+  bottom: 0;
+  left: 50px; /* Adjust the initial player position */
+  z-index: 100;
+}
+
+.obstacle {
+  width: 20px;
+  height: 200px;
+  background-color: rgba(83, 83, 83, 0.416);
+  position: absolute;
+  bottom: 0;
+  z-index: 99;
+}

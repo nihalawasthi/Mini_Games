@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/phaser@3.70.0/dist/phaser.min.js"></script>
+
+    <style>
+        html {
+            margin: 0;
+            padding: 0;
+            overflow: hidden;
+            width: 100%;
+            height: 100%;}
+
+        body{
+            margin: 0;
+            padding: 0;
+            overflow: hidden;
+            width: 100%;
+            height: 100%;
+            background-color: black;
+        }
+
+        #phaser-example {
+            width: 100%;
+            height: 100%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background-image: url('bg.jpg'); /* Set background image here */
+            background-size: cover;
+        }
+    
+        canvas {
+            display: block;
+            width: 90%;
+            height: 90%;
+            border: 2px solid black;
+            background-color: transparent; /* Optionally set canvas background to transparent */
+        }
+    </style>
+</head>
+<body>
+    <div id="phaser-example"></div>
+    <input id="clippy" type="text" style="position: absolute; left: -2000px">
+    
+    <script type="text/javascript">
+        class Example extends Phaser.Scene {
+            preload() {
+                this.load.setBaseURL('');
+                this.load.image('block', 'img.jpg'); 
+            }
+
+            create() {
+                this.matter.world.setBounds(0, 0, window.innerWidth * 0.8, window.innerHeight * 0.8); // Set bounds for matter.js world
+
+                const block = this.matter.add.image(40, 10, 'block', null, { chamfer: { radius: 16 } }).setBounce(0.9);
+                block.setScale(0.15);
+
+                this.matter.add.mouseSpring({ length: 1, stiffness: 0.6 });
+            }
+        }
+
+        const config = {
+            type: Phaser.AUTO,
+            width: window.innerWidth * 0.8,
+            height: window.innerHeight * 0.8,
+            parent: 'phaser-example',
+            physics: {
+                default: 'matter',
+                matter: {
+                    debug: true,
+                    gravity: { y: 1 }
+                }
+            },
+            scene: Example
+        };
+
+        const game = new Phaser.Game(config);
+    </script>
+</body>
+</html>

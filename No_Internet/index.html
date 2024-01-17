@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Eclipse of Eternity: The Aetherium Chronicles</title>
+  <link rel="shortcut icon" href="../img/favicon.ico" type="image/x-icon">
+  <link rel="stylesheet" href="styles.css">
+</head>
+
+<body>
+  <audio id="moveSound" src="track.mp3" preload="auto"></audio>
+  <audio id="collisionSound" src="crash.mp3" preload="auto"></audio>
+  <div id="start-screen">
+    <h1>Eclipse of Eternity</h1>
+    <p>Welcome! Use Arrow keys to move up and down. Avoid obstacles.</p>
+    <button onclick="startGame()">Start Game</button>
+  </div>
+
+  <div id="game-container" style="display: none;">
+    <div id="player"></div>
+    <div id="power-up"></div>
+    <div id="scoreboard">Score: 0</div>
+  </div>
+
+  <script>
+
+    function startGame() {
+      document.getElementById('start-screen').style.display = 'none';
+      document.getElementById('game-container').style.display = 'block';
+      moveObstacles();
+      setInterval(movePlayer, 50);
+    }
+
+    const gameContainer = document.getElementById('game-container');
+    const player = document.getElementById('player');
+    const scoreboard = document.getElementById('scoreboard');
+    let isMovingUp = false;
+    let isMovingDown = false;
+    let obstacles = [];
+    let gameSpeed = 10;
+    let obstacleSpawnTimer = 0;
+    let distance = 0;
+    let scoreCountStarted = false;
+    let speedIncreaseInterval;
+    let obstacleFrequency = 120; // Adjusted obstacle frequency
+    let speedIncreaseIncrement = 0.1; // Adjusted game speed increase rate
+
+    function createObstacle() {
+      const obstacle = document.createElement('div');
+      obstacle.classList.add('obstacle');
+      obstacle.style.right = '0px';
+      obstacle.style.bottom = Math.floor(Math.random() * window.innerHeight) + 'px';
+      gameContainer.appendChild(obstacle);
+      obstacles.push(obstacle);
+    }
+    let powerUpActive = false;
+
+    function createPowerUp() {
+      const powerUp = document.getElementById('power-up');
+      powerUp.style.right = '0px';
+      powerUp.style.bottom = Math.floor(Math.random() * window.innerHeight) + 'px';
+      powerUp.style.display = 'block';
+    }
+
+    function movePowerUp() {
+      const powerUp = document.getElementById('power-up');
+      if (!powerUpActive) {
+        powerUp.style.right = parseInt(powerUp.style.right) + gameSpeed + 'px';
+
+        if (parseInt(powerUp.style.right) > window.innerWidth) {
+          powerUp.style.display = 'none';
+          setTimeout(() => {
+            createPowerUp();
+          }, Math.random() * 5000 + 3000); // Randomize power-up appearance
+        }
+
+        if (collisionDetection(player, powerUp)) {
+          powerUp.style.display = 'none';
+          powerUpActive = true;
+          gameSpeed /= 2; // Slow down obstacle speed by half
+          setTimeout(() => {
+            gameSpeed *= 2; // Restore obstacle speed after power-up duration
+            powerUpActive = false;
+          }, 5000); // Power-up duration (in milliseconds)
+        }
+      }
+    }
+
+    function initializePowerUp() {
+      createPowerUp();
+      setInterval(movePowerUp, 50);
+    }
+    function moveObstacles() {
+      obstacleSpawnTimer++;
+
+      if (obstacleSpawnTimer % obstacleFrequency === 0) {
+        createObstacle();
+      }
+
+      for (let i = 0; i < obstacles.length; i++) {
+        let obstacle = obstacles[i];
+        obstacle.style.right = parseInt(obstacle.style.right) + gameSpeed + 'px';
+
+        if (collisionDetection(player, obstacle)) {
+          gameOver();
+        }
+
+        if (parseInt(obstacle.style.right) > window.innerWidth) {
+          obstacle.remove();
+          obstacles.splice(i, 1);
+          i--;
+        }
+      }
+
+      if (scoreCountStarted) {
+        distance += gameSpeed;
+        scoreboard.textContent = `Distance: ${distance}`;
+        increaseGameSpeed();
+      }
+
+      requestAnimationFrame(moveObstacles);
+    }
+
+    function collisionDetection(player, obstacle) {
+      let playerRect = player.getBoundingClientRect();
+      let obstacleRect = obstacle.getBoundingClientRect();
+
+      if (
+        !(playerRect.top > obstacleRect.bottom ||
+          playerRect.right < obstacleRect.left ||
+          playerRect.bottom < obstacleRect.top ||
+          playerRect.left > obstacleRect.right)
+      ) {
+        document.getElementById('collisionSound').play();
+        document.getElementById('moveSound').pause()
+        gameOver();
+        return true;
+      }
+
+      return false;
+    }
+
+
+    function movePlayer() {
+      if (isMovingUp) {
+        let position = parseInt(window.getComputedStyle(player).getPropertyValue('bottom'));
+        position += gameSpeed;
+        player.style.bottom = position + 'px';
+        document.getElementById('moveSound').play();
+      }
+    
+      if (isMovingDown) {
+        let position = parseInt(window.getComputedStyle(player).getPropertyValue('bottom'));
+        position -= gameSpeed;
+        player.style.bottom = position + 'px';
+        document.getElementById('moveSound').play();
+      }
+    
+      if (!scoreCountStarted && (isMovingUp || isMovingDown)) {
+        scoreCountStarted = true;
+        speedIncreaseInterval = setInterval(increaseObstacleFrequency, 30000);
+      }
+    }
+    
+
+    function increaseGameSpeed() {
+      // Gradually increase game speed
+      if (distance > 500 && gameSpeed < 20) {
+        gameSpeed += speedIncreaseIncrement;
+      }
+    }
+
+    function increaseObstacleFrequency() {
+      // Gradually increase obstacle frequency
+      if (obstacleFrequency > 40) {
+        obstacleFrequency -= 5;
+      } else {
+        clearInterval(speedIncreaseInterval); // Stop increasing obstacle frequency
+      }
+    }
+
+
+    function gameOver() {
+      alert('Game Over!');
+      obstacles.forEach(obstacle => obstacle.remove());
+      obstacles = [];
+      player.style.bottom = '0px';
+      isMovingUp = false;
+      isMovingDown = false;
+      scoreCountStarted = false;
+      distance = 0;
+      gameSpeed = 10;
+      obstacleFrequency = 120; // Reset obstacle frequency to initial value
+      scoreboard.textContent = `Distance: ${distance}`;
+      clearInterval(speedIncreaseInterval);
+      setTimeout(() => {
+        window.location.reload();
+      }, 1000);
+    }
+
+    document.addEventListener('keydown', (event) => {
+      if (event.code === 'ArrowUp') {
+        isMovingUp = true;
+      }
+      if (event.code === 'ArrowDown') {
+        isMovingDown = true;
+      }
+    });
+
+    document.addEventListener('keyup', (event) => {
+      if (event.code === 'ArrowUp') {
+        isMovingUp = false;
+      }
+      if (event.code === 'ArrowDown') {
+        isMovingDown = false;
+      }
+    });
+
+    moveObstacles();
+    setInterval(movePlayer, 50);
+    startGame(); // Add this line after startGame() definition to automatically start the game
+    initializePowerUp();
+  </script>
+</body>
+
+</html>
